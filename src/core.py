@@ -54,7 +54,7 @@ class YouTube:
         tracks.sort(key=lambda x:0 if x.get("snippet",{}).get("language")=="ar" else 1)
         raw=self.api.captions().download(id=tracks[0]["id"],tfmt="srt").execute()
         raw=raw.decode("utf-8",errors="ignore") if isinstance(raw,bytes) else str(raw)
-        return re.sub(r"(?m)^\\s*\\d+\\s*$|^\\d{2}:\\d{2}:\\d{2}[,.]\\d+\\s+-->.*$|<[^>]+>","",raw).strip()
+        return re.sub(r"(?m)^\s*\d+\s*$|^\d{2}:\d{2}:\d{2}[,.]\d+\s+-->.*$|<[^>]+>","",raw).strip()
     def schedule(self,vid,title,desc,publish_at):
         v=self.api.videos().list(part="snippet,status",id=vid).execute().get("items",[])
         if not v: raise RuntimeError("Video not found.")
@@ -81,7 +81,7 @@ class LocalWriter:
         x=self.tok(prompt,return_tensors="pt",truncation=True,max_length=1600)
         with torch.no_grad(): y=self.model.generate(**x,max_new_tokens=200,do_sample=False,pad_token_id=self.tok.eos_token_id)
         txt=self.tok.decode(y[0][x["input_ids"].shape[1]:],skip_special_tokens=True)
-        m=re.search(r"\\{.*\\}",txt,re.S)
+        m=re.search(r"\{.*\}",txt,re.S)
         if m:
             try:
                 obj=json.loads(m.group(0)); return {"title":str(obj.get("title",title))[:100],"description":str(obj.get("description",""))[:5000]}
